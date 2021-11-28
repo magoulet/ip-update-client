@@ -91,3 +91,5 @@ if __name__ == "__main__":
 
         with open('prevIpAddr.pickle', 'wb') as file:
             pickle.dump(currIpAddr, file)
+    else:
+        print('No IP update required')
