@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import boto3
 import pickle
 import requests
 from requests.auth import HTTPBasicAuth
@@ -67,6 +68,37 @@ def googleDomainUpdate(cfg):
         print('Failed to update Google Domains IP')
 
 
+def awsRoute53Update(cfg, ipAddr):
+    client = boto3.client('route53', aws_access_key_id=cfg['awsAccessKeyId'],
+                          aws_secret_access_key=cfg['awsSecretAccessKey'])
+    y = client.change_resource_record_sets(
+        HostedZoneId=cfg['hosted_zone_id'],
+        ChangeBatch={
+            'Comment': 'Update from ipUpdateClient',
+            'Changes': [
+                {
+                    'Action': 'UPSERT',
+                    'ResourceRecordSet': {
+                        'Name': cfg['label'],
+                        'Type': 'A',
+                        'TTL': cfg['TTL'],
+                        'ResourceRecords': [
+                            {
+                                'Value': ipAddr
+                            },
+                            ],
+                        }
+                },
+                ]
+        }
+    )
+
+    print('AWS Route 53 ({}): {}, {}'.
+          format(cfg['label'],
+                 y['ResponseMetadata']['HTTPStatusCode'],
+                 y['ChangeInfo']['Status']))
+
+
 if __name__ == "__main__":
 
     cfg = yaml.load(open('config.yml'), Loader=yaml.FullLoader)
@@ -83,6 +115,7 @@ if __name__ == "__main__":
         openDnsUpdate(cfg['openDNS'])
         googleDomainUpdate(cfg['googleDomain']['magoulet.net'])
         googleDomainUpdate(cfg['googleDomain']['www.magoulet.net'])
+        awsRoute53Update(cfg['awsRoute53']['magoulet.com'], currIpAddr)
         body = 'ipUpdateClient: IP has changed. '\
                'Current IP is: {}, previous IP '\
                'was: {}'.format(currIpAddr, prevIpAddr)
