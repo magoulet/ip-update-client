@@ -71,7 +71,7 @@ def googleDomainUpdate(cfg):
 def awsRoute53Update(cfg, ipAddr):
     client = boto3.client('route53', aws_access_key_id=cfg['awsAccessKeyId'],
                           aws_secret_access_key=cfg['awsSecretAccessKey'])
-    response = client.change_resource_record_sets(
+    y = client.change_resource_record_sets(
         HostedZoneId=cfg['hosted_zone_id'],
         ChangeBatch={
             'Comment': 'Update from ipUpdateClient',
@@ -93,9 +93,10 @@ def awsRoute53Update(cfg, ipAddr):
         }
     )
 
-    print('DNS record status: {}'.format(response['ChangeInfo']['Status']))
-    print('DNS record response code: {}'.
-          format(response['ResponseMetadata']['HTTPStatusCode']))
+    print('AWS Route 53 ({}): {}, {}'.
+          format(cfg['label'],
+                 y['ResponseMetadata']['HTTPStatusCode'],
+                 y['ChangeInfo']['Status']))
 
 
 if __name__ == "__main__":
@@ -119,7 +120,7 @@ if __name__ == "__main__":
                'Current IP is: {}, previous IP '\
                'was: {}'.format(currIpAddr, prevIpAddr)
         print(body)
-        # telegramNotification(cfg['telegram'], body)
+        telegramNotification(cfg['telegram'], body)
 
         with open('prevIpAddr.pickle', 'wb') as file:
             pickle.dump(currIpAddr, file)
