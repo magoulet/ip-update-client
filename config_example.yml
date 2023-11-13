@@ -1,0 +1,20 @@
+googleDomain:
+  mywebsite.net:
+    label: mywebsite.net
+    username: <...>
+    password: <...>
+openDNS:
+  label: Home
+  username: my@email.com
+  password: <...>
+telegram:
+  token: <...>
+  method: sendMessage
+  chat_id: <...>
+awsRoute53:
+  mywebsite.com:
+    label: mywebsite.com
+    awsAccessKeyId: <...>
+    awsSecretAccessKey: <...>
+    hosted_zone_id: <...>
+    TTL: 3600
