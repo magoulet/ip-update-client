@@ -51,23 +51,6 @@ def openDnsUpdate(cfg):
         print('Failed to update OpenDNS IP')
 
 
-def googleDomainUpdate(cfg):
-    url = 'https://{}:{}@domains.google.com/nic/update'.\
-        format(cfg['username'], cfg['password'])
-    params = {
-        'hostname': cfg['label']
-    }
-
-    try:
-        y = requests.post(url=url,
-                          params=params
-                          )
-        print('Google Domains ({}): '.format(cfg['label']), y.text)
-        return y.text
-    except Exception:
-        print('Failed to update Google Domains IP')
-
-
 def awsRoute53Update(cfg, ipAddr):
     client = boto3.client('route53', aws_access_key_id=cfg['awsAccessKeyId'],
                           aws_secret_access_key=cfg['awsSecretAccessKey'])
@@ -113,8 +96,6 @@ if __name__ == "__main__":
 
     if currIpAddr != prevIpAddr:
         openDnsUpdate(cfg['openDNS'])
-        googleDomainUpdate(cfg['googleDomain']['magoulet.net'])
-        googleDomainUpdate(cfg['googleDomain']['www.magoulet.net'])
         awsRoute53Update(cfg['awsRoute53']['magoulet.com'], currIpAddr)
         body = 'ipUpdateClient: IP has changed. '\
                'Current IP is: {}, previous IP '\
