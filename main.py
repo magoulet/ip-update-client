@@ -34,6 +34,58 @@ def telegramNotification(cfg, body):
     return response.text
 
 
+def send_mailgun_notification(cfg, body):
+    """
+    Send notification using Mailgun API
+    
+    Args:
+        cfg (dict): Configuration dictionary containing Mailgun settings
+        body (str): Message body to send
+    
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        # Extract Mailgun configuration
+        mailgun_cfg = cfg.get('mailgun', {})
+        api_key = mailgun_cfg.get('api_key')
+        domain = mailgun_cfg.get('domain')
+        sender = mailgun_cfg.get('sender_email')
+        recipient = mailgun_cfg.get('recipient_email')
+        subject = mailgun_cfg.get('subject')
+
+        # Verify all required configuration is present
+        if not all([api_key, domain, sender, recipient, subject]):
+            print("Error: Missing required Mailgun configuration")
+            return False
+
+        # Prepare the API request
+        url = f"https://api.mailgun.net/v3/{domain}/messages"
+        auth = ("api", api_key)
+        data = {
+            "from": sender,
+            "to": recipient,
+            "subject": subject,
+            "text": body
+        }
+
+        # Send the request
+        response = requests.post(url, auth=auth, data=data)
+
+        # Check if the request was successful
+        if response.status_code == 200:
+            print("Notification sent successfully")
+            return True
+        else:
+            print(f"Failed to send notification. Status code: {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+
+    except Exception as e:
+        print(f"Error sending notification: {str(e)}")
+        return False
+
+
 def openDnsUpdate(cfg):
     url = 'https://updates.opendns.com/nic/update'
     params = {
@@ -101,7 +153,15 @@ if __name__ == "__main__":
                'Current IP is: {}, previous IP '\
                'was: {}'.format(currIpAddr, prevIpAddr)
         print(body)
-        telegramNotification(cfg['telegram'], body)
+
+        notification_method = cfg.get('notifications', {}).get('method','').lower()
+
+        if notification_method == 'telegram':
+            telegramNotification(cfg['telegram'], body)
+        elif notification_method == 'mailgun':
+            send_mailgun_notification(cfg, body)
+        else:
+            print(f"Error: Unknown notificaiton method '{notification_method}'")
 
         with open('prevIpAddr.pickle', 'wb') as file:
             pickle.dump(currIpAddr, file)
