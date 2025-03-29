@@ -146,3 +146,6 @@ cython_debug/
 
 # PyCharm Settings
 .idea/
+
+# Other
+run_ip_update.sh
