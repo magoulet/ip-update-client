@@ -13,9 +13,13 @@ def currentIP():
     params = {
     }
 
-    y = requests.get(url=url, params=params).json()
+    try:
+        y = requests.get(url=url, params=params).json()
 
-    return y['ip_addr']
+        return y['ip_addr']
+    except Exception as e:
+        print("Failed to determine current IP address")
+        raise SystemExit(e)
 
 
 def telegramNotification(cfg, body):
@@ -99,6 +103,7 @@ def send_ntfy_notification(cfg, body):
     try:
         # Extract ntfy configuration
         ntfy_cfg = cfg.get('ntfy', {})
+        hostname = ntfy_cfg.get('hostname')
         token = ntfy_cfg.get('token')
         topic = ntfy_cfg.get('topic')
 
@@ -108,7 +113,7 @@ def send_ntfy_notification(cfg, body):
             return False
 
         # Prepare the API request
-        url = f"https://ntfy.goulet.info/{topic}"
+        url = f"{hostname}/{topic}"
         headers = {
             "Title": "IP Address Update",
             "Authorization": f"Bearer {token}"
