@@ -9,14 +9,13 @@ import yaml
 
 def currentIP():
 
-    url = 'http://ifconfig.me/all.json'
-    params = {
-    }
+    url = 'http://ipinfo.io/json'
+    params = {}
 
     try:
-        y = requests.get(url=url, params=params).json()
+        y = requests.get(url=url, params=params)
 
-        return y['ip_addr']
+        return y.json()['ip']
     except Exception as e:
         print("Failed to determine current IP address")
         raise SystemExit(e)
