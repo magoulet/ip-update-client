@@ -4,21 +4,27 @@ import boto3
 import pickle
 import requests
 from requests.auth import HTTPBasicAuth
+import time
 import yaml
 
 
 def currentIP():
-
     url = 'http://ipinfo.io/json'
-    params = {}
+    max_retries = 3
+    backoff = 5
 
-    try:
-        y = requests.get(url=url, params=params)
-
-        return y.json()['ip']
-    except Exception as e:
-        print("Failed to determine current IP address")
-        raise SystemExit(e)
+    for attempt in range(1, max_retries + 1):
+        try:
+            y = requests.get(url=url, timeout=10)
+            return y.json()['ip']
+        except Exception as e:
+            print(f"Attempt {attempt}/{max_retries} failed: {e}")
+            if attempt < max_retries:
+                time.sleep(backoff)
+                backoff *= 3
+            else:
+                print("Failed to determine current IP address")
+                raise SystemExit(e)
 
 
 def telegramNotification(cfg, body):
